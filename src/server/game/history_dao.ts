@@ -42,16 +42,18 @@ export class GameHistoryDao extends Model<
   @NotNull
   declare previousGameVersion: number;
 
-  @Attribute(DataTypes.TEXT)
+  // MEDIUMTEXT: a full game-state snapshot per action, already ~28KB at the
+  // top end, which is too close to MariaDB's 64KB TEXT ceiling.
+  @Attribute(DataTypes.TEXT("medium"))
   declare previousGameData: string | null;
 
-  @Attribute(DataTypes.TEXT)
+  @Attribute(DataTypes.TEXT("medium"))
   declare patch: string | null;
 
   @Attribute(DataTypes.STRING)
   declare actionName: string | null;
 
-  @Attribute(DataTypes.TEXT)
+  @Attribute(DataTypes.TEXT("medium"))
   declare actionData: string | null;
 
   @Attribute(DataTypes.BOOLEAN)
@@ -79,14 +81,17 @@ export class GameHistoryDao extends Model<
   @NotNull
   declare internalVersion: CreationOptional<number>;
 
+  @Attribute(DataTypes.DATE(3))
   @CreatedAt
   @NotNull
   declare createdAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @UpdatedAt
   @NotNull
   declare updatedAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @DeletedAt
   declare deletedAt?: Date | null;
 

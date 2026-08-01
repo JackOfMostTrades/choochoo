@@ -1,3 +1,3 @@
-POSTGRES_URL="postgres://localhost:5432/choochootest"
+DATABASE_URL="mariadb://root:choochoo@localhost:3306/choochootest"
 NODE_ENV="test"
 PORT=3001

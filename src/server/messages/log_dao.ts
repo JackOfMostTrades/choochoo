@@ -56,14 +56,17 @@ export class LogDao extends Model<
   @NotNull
   declare internalVersion: CreationOptional<number>;
 
+  @Attribute(DataTypes.DATE(3))
   @CreatedAt
   @NotNull
   declare createdAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @UpdatedAt
   @NotNull
   declare updatedAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @DeletedAt
   declare deletedAt: Date | null;
 

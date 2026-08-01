@@ -38,11 +38,11 @@ docker-compose up --build --watch
 
 Alternatively, you can set up services manually.
 
-To run locally, you should start a local postgres and redis instance.
+To run locally, you should start a local MariaDB and redis instance.
 With docker you can run:
 
 ```
-docker run -d --name choochoo-pg -p 5432:5432 -e POSTGRES_PASSWORD=choochoo -e POSTGRES_USER=choochoo postgres:latest 
+docker run -d --name choochoo-mariadb -p 3306:3306 -e MARIADB_ROOT_PASSWORD=choochoo -e MARIADB_DATABASE=choochoo -e MARIADB_USER=choochoo -e MARIADB_PASSWORD=choochoo mariadb:11.4 --character-set-server=utf8mb4 --collation-server=utf8mb4_uca1400_as_cs
 docker run -d --name choochoo-redis -p 6379:6379 redis:latest
 ```
 
@@ -50,7 +50,7 @@ Create and source an environment variable with something like the following:
 
 ```
 export NODE_ENV=development
-export POSTGRES_URL=postgresql://choochoo:choochoo@localhost:5432/choochoo
+export DATABASE_URL=mariadb://choochoo:choochoo@localhost:3306/choochoo
 export REDIS_URL=redis://localhost:6379
 export SESSION_SECRET=foobar
 ```

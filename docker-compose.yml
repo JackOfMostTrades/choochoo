@@ -1,20 +1,25 @@
 services:
-  postgres:
-    image: postgres:15
-    container_name: choochoo-pg
+  mariadb:
+    # Pinned to match production (11.4.x); `latest` drifts to newer majors.
+    image: mariadb:11.4
+    container_name: choochoo-mariadb
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_uca1400_as_cs
     environment:
-      POSTGRES_DB: choochoo
-      POSTGRES_USER: choochoo
-      POSTGRES_PASSWORD: choochoo
+      MARIADB_DATABASE: choochoo
+      MARIADB_USER: choochoo
+      MARIADB_PASSWORD: choochoo
+      MARIADB_ROOT_PASSWORD: choochoo
     ports:
-      - "5433:5432"
+      - "3307:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U choochoo -d choochoo"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -36,12 +41,12 @@ services:
       - "3001:3000"
     environment:
       NODE_ENV: development
-      POSTGRES_URL: postgresql://choochoo:choochoo@postgres:5432/choochoo
+      DATABASE_URL: mariadb://choochoo:choochoo@mariadb:3306/choochoo
       REDIS_URL: redis://redis:6379
       SESSION_SECRET: foobar-dev
       PORT: 3000
     depends_on:
-      postgres:
+      mariadb:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -60,5 +65,5 @@ services:
           path: ./package-lock.json
 
 volumes:
-  postgres_data:
+  mariadb_data:
   redis_data: 

@@ -13,19 +13,19 @@ jobs:
       checks: write
 
     services:
-      postgres:
-        image: postgres:latest
+      mariadb:
+        # Pinned to match production; `latest` drifts to newer majors.
+        image: mariadb:11.4
         env:
-          POSTGRES_DB: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
+          MARIADB_ROOT_PASSWORD: choochoo
+          MARIADB_DATABASE: choochootest
         options: >-
-          --health-cmd pg_isready
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
         ports:
-          - 5432:5432
+          - 3306:3306
 
     steps:
       - name: Check out Git repository
@@ -54,12 +54,12 @@ jobs:
       - name: Run migrations
         run: npm run migrate-testdb-direct
         env:
-          POSTGRES_URL: "postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/postgres"
+          DATABASE_URL: "mariadb://root:choochoo@localhost:${{ job.services.mariadb.ports[3306] }}/choochootest"
           NODE_ENV: "test"
 
       - name: Run E2E tests
         run: ./src/scripts/deflake.sh "npm run e2e-test"
         env:
-          POSTGRES_URL: "postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/postgres"
+          DATABASE_URL: "mariadb://root:choochoo@localhost:${{ job.services.mariadb.ports[3306] }}/choochootest"
           NODE_ENV: "test"
           PORT: 3001

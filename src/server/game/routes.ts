@@ -24,6 +24,7 @@ import "../session";
 import { UserDao } from "../user/dao";
 import { assertRole } from "../util/enforce_role";
 import { stage, Stage } from "../util/environment";
+import { jsonArrayContains } from "../util/json_query";
 import { GameHistoryDao } from "./history_dao";
 import {
   abandonGame,
@@ -65,12 +66,12 @@ const router = initServer().router(gameContract, {
         [Op.and]: [
           {
             [Op.or]: [
-              { playerIds: { [Op.contains]: [userId] } },
+              jsonArrayContains("playerIds", userId),
               { ownerId: userId },
             ],
           },
           {
-            [Op.not]: { abandonedPlayerIds: { [Op.contains]: [userId] } },
+            [Op.not]: jsonArrayContains("abandonedPlayerIds", userId),
           },
           where,
         ],
@@ -82,7 +83,7 @@ const router = initServer().router(gameContract, {
           {
             [Op.not]: {
               [Op.or]: [
-                { playerIds: { [Op.contains]: [excludeUserId] } },
+                jsonArrayContains("playerIds", excludeUserId),
                 { ownerId: excludeUserId },
               ],
             },
@@ -101,7 +102,7 @@ const router = initServer().router(gameContract, {
         [Op.and]: [
           {
             [Op.or]: [
-              { playerIds: { [Op.contains]: [req.session.userId] } },
+              jsonArrayContains("playerIds", req.session.userId),
               { ownerId: req.session.userId },
               { unlisted: false },
             ],

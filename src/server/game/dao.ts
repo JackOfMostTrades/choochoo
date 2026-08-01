@@ -46,17 +46,22 @@ export class GameDao extends Model<
   @NotNull
   declare name: string;
 
-  @Attribute(DataTypes.TEXT)
+  // MEDIUMTEXT: serialised game state already reaches ~28KB, close enough to
+  // MariaDB's 64KB TEXT ceiling to be worth avoiding.
+  @Attribute(DataTypes.TEXT("medium"))
   declare gameData: string | null;
 
   @Attribute(DataTypes.STRING)
   @NotNull
   declare status: GameStatus;
 
-  @Attribute(DataTypes.JSONB)
+  @Attribute(DataTypes.JSON)
   declare autoAction: { users: { [userId: number]: AutoAction } } | null;
 
-  @Attribute(DataTypes.ARRAY(DataTypes.INTEGER))
+  // MariaDB has no array type; ordered JSON arrays stand in for Postgres
+  // `integer[]`/`text[]`. Order is significant -- `notes` is indexed by
+  // position within `playerIds`.
+  @Attribute(DataTypes.JSON)
   @NotNull
   declare playerIds: number[];
 
@@ -92,28 +97,28 @@ export class GameDao extends Model<
   @NotNull
   declare gameHoursDuration: number;
 
-  @Attribute({ type: DataTypes.DATE, allowNull: true })
+  @Attribute({ type: DataTypes.DATE(3), allowNull: true })
   declare turnStartTime?: CreationOptional<Date | null>;
 
-  @Attribute(DataTypes.JSONB)
+  @Attribute(DataTypes.JSON)
   declare playerFlexTime: { [userId: number]: number } | null;
 
-  @Attribute(DataTypes.ARRAY(DataTypes.INTEGER))
+  @Attribute(DataTypes.JSON)
   @NotNull
   declare concedingPlayers: number[];
 
-  @Attribute(DataTypes.ARRAY(DataTypes.INTEGER))
+  @Attribute(DataTypes.JSON)
   @NotNull
   declare abandonedPlayerIds: number[];
 
-  @Attribute(DataTypes.JSONB)
+  @Attribute(DataTypes.JSON)
   declare config: MapConfig;
 
-  @Attribute(DataTypes.JSONB)
+  @Attribute(DataTypes.JSON)
   @NotNull
   declare variant: VariantConfig;
 
-  @Attribute(DataTypes.ARRAY(DataTypes.TEXT))
+  @Attribute(DataTypes.JSON)
   declare notes: Array<string | null> | null;
 
   @Attribute({ type: DataTypes.INTEGER, allowNull: true })
@@ -126,14 +131,17 @@ export class GameDao extends Model<
   @NotNull
   declare internalVersion: CreationOptional<number>;
 
+  @Attribute(DataTypes.DATE(3))
   @CreatedAt
   @NotNull
   declare createdAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @UpdatedAt
   @NotNull
   declare updatedAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @DeletedAt
   declare deletedAt: Date | null;
 

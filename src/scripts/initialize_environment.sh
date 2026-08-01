@@ -15,7 +15,7 @@ function read_variable() {
 touch ~/.bash_profile
 
 secret="$(read_variable "SESSION_SECRET" "foobar")"
-postgres_url="$(read_variable "POSTGRES_URL" "postgres://localhost:5432/choochoo")"
+database_url="$(read_variable "DATABASE_URL" "mariadb://choochoo:choochoo@localhost:3306/choochoo")"
 environment="$(read_variable "NODE_ENV" "development")"
 redis_url="$(read_variable "REDIS_URL" "redis://localhost:6379/")"
 client_origin="$(read_variable "CLIENT_ORIGIN" "")"

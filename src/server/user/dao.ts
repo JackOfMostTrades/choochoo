@@ -61,10 +61,11 @@ export class UserDao extends Model<
   @Attribute(DataTypes.STRING)
   declare role: UserRole;
 
-  @Attribute(DataTypes.JSONB)
+  @Attribute(DataTypes.JSON)
   declare notificationPreferences: NotificationPreferences;
 
-  @Attribute(DataTypes.ARRAY(DataTypes.SMALLINT))
+  // Ordered JSON array in place of Postgres `smallint[]`.
+  @Attribute(DataTypes.JSON)
   declare preferredColors: PlayerColor[] | null;
 
   @Attribute(DataTypes.INTEGER)
@@ -79,14 +80,17 @@ export class UserDao extends Model<
   @NotNull
   declare internalVersion: CreationOptional<number>;
 
+  @Attribute(DataTypes.DATE(3))
   @CreatedAt
   @NotNull
   declare createdAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @UpdatedAt
   @NotNull
   declare updatedAt: CreationOptional<Date>;
 
+  @Attribute(DataTypes.DATE(3))
   @DeletedAt
   declare deletedAt: Date | null;
 

@@ -11,37 +11,58 @@ export function stage(): Stage {
   return Stage.parse(process.env.NODE_ENV);
 }
 
-export function postgresSsl(): { ca: string } | undefined {
-  const ssl = process.env.POSTGRES_SSL;
-  if (ssl == null || ssl == "") return undefined;
-  return { ca: readFileSync(ssl, "utf-8") };
+/**
+ * SSL config for the database connection. `DB_SSL_CA` points at a CA bundle on
+ * disk; `DB_SSL=true` enables SSL using the system trust store.
+ */
+export function databaseSsl(): { ca: string } | boolean | undefined {
+  const ca = process.env.DB_SSL_CA;
+  if (isNotEmpty(ca)) return { ca: readFileSync(ca, "utf-8") };
+  return process.env.DB_SSL === "true" ? true : undefined;
 }
 
-export function postgresUrl(): URL {
-  if (isNotEmpty(process.env.POSTGRES_URL)) {
-    const postgresUrl = new URL(process.env.POSTGRES_URL);
-    assert(postgresUrl != null, "must provide POSTGRES_URL in url format");
-    return postgresUrl;
+/**
+ * The database connection URL. Prefers DATABASE_URL, otherwise assembles one
+ * from the discrete DB_* variables -- shared hosts hand out host/user/password
+ * separately, and building via `new URL` percent-encodes passwords containing
+ * characters like `#`, `%`, `@` and `/`.
+ *
+ * The scheme must be `mariadb:`; @sequelize/mariadb rejects anything else
+ * (including `mysql:`) when parsing the URL.
+ */
+export function databaseUrl(): URL {
+  if (isNotEmpty(process.env.DATABASE_URL)) {
+    const databaseUrl = new URL(process.env.DATABASE_URL);
+    assert(
+      databaseUrl.protocol === "mariadb:",
+      "DATABASE_URL must use the mariadb:// scheme",
+    );
+    return databaseUrl;
   }
   assert(
-    isNotEmpty(process.env.POSTGRES_PASS),
-    "must provide POSTGRES_URL or POSTGRES_PASS",
+    isNotEmpty(process.env.DB_PASS),
+    "must provide DATABASE_URL or DB_PASS",
   );
-  const url = new URL("postgres://postgres:password@localhost:5432/aos");
-  url.password = process.env.POSTGRES_PASS;
-  if (isNotEmpty(process.env.POSTGRES_USER)) {
-    url.username = process.env.POSTGRES_USER;
+  const url = new URL("mariadb://choochoo:password@localhost:3306/choochoo");
+  url.password = process.env.DB_PASS;
+  if (isNotEmpty(process.env.DB_USER)) {
+    url.username = process.env.DB_USER;
   }
-  if (isNotEmpty(process.env.POSTGRES_HOST)) {
-    url.hostname = process.env.POSTGRES_HOST;
+  if (isNotEmpty(process.env.DB_HOST)) {
+    url.hostname = process.env.DB_HOST;
   }
-  if (isNotEmpty(process.env.POSTGRES_PORT)) {
-    url.port = process.env.POSTGRES_PORT;
+  if (isNotEmpty(process.env.DB_PORT)) {
+    url.port = process.env.DB_PORT;
   }
-  if (isNotEmpty(process.env.POSTGRES_DATABASE)) {
-    url.pathname = "/" + process.env.POSTGRES_DATABASE;
+  if (isNotEmpty(process.env.DB_NAME)) {
+    url.pathname = "/" + process.env.DB_NAME;
   }
   return url;
+}
+
+/** Connection pool size. Shared hosts cap max_user_connections aggressively. */
+export function databasePoolMax(): number {
+  return Number(process.env.DB_POOL_MAX ?? 6);
 }
 
 export function redisUrl(): URL | undefined {
