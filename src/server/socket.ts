@@ -18,9 +18,13 @@ import { Lifecycle } from "./util/lifecycle";
 let io: Server<ClientToServerEvents, ServerToClientEvents>;
 
 export function startIo() {
-  const args: Partial<ServerOptions> = {
-    adapter: createAdapter(redisClient, subClient),
-  };
+  const args: Partial<ServerOptions> = {};
+
+  // Without Redis, socket.io falls back to its in-memory adapter, which only
+  // fans out to clients connected to this process. Fine for a single instance.
+  if (redisClient != null && subClient != null) {
+    args.adapter = createAdapter(redisClient, subClient);
+  }
 
   const origin = clientOrigin();
   if (origin != null) {

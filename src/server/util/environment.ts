@@ -65,12 +65,17 @@ export function databasePoolMax(): number {
   return Number(process.env.DB_POOL_MAX ?? 6);
 }
 
+/**
+ * Redis is optional in every environment, including production. When it is
+ * absent the server keeps sessions, the user cache and socket.io fan-out in
+ * process, which is correct only because we run a single server instance. If a
+ * second instance is ever added, REDIS_URL becomes mandatory again -- without
+ * it the two would not see each other's sessions or socket events.
+ */
 export function redisUrl(): URL | undefined {
-  const redisUrl = process.env.REDIS_URL;
-  if (stage() === Stage.enum.production) {
-    assert(redisUrl != null, "must provide a redis url");
-  }
-  return redisUrl == null ? undefined : new URL(redisUrl);
+  return isNotEmpty(process.env.REDIS_URL)
+    ? new URL(process.env.REDIS_URL)
+    : undefined;
 }
 
 export function sessionSecret(): string {
